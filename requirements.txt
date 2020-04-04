@@ -1,0 +1,3 @@
+redis
+smart_open
+faker
