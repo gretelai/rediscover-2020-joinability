@@ -1,7 +1,11 @@
 from itertools import combinations
 from dataclasses import dataclass, asdict
+import base64
+import json
 
 import redis
+
+from loader import HLL_PREFIX
 
 
 STD_ERR = .05
@@ -75,7 +79,7 @@ def compute_containment(keynames, scores):
     key1, key2 = keynames
     card1, card2, union = scores
 
-    #if _outside_std_err(card1, card2):
+    # if _outside_std_err(card1, card2):
     #    return []
 
     if card1 < MIN_UNIQUE or card2 < MIN_UNIQUE:
@@ -96,13 +100,15 @@ def compute_containment(keynames, scores):
     return cons
 
 
-def process_all_pairs():
+def process_all_pairs(prefix='hll:*'):
     r = redis.Redis(decode_responses=True)
 
-    # we assume the only keys in Redis
-    # are the HLLs
-    # this yields a list of 2-tuples of redis keys
-    key_combos = list(combinations(r.keys(), 2))
+    # do a simple scan to check for all keys that
+    # are holding the HLLs
+    keys = []
+    for key in r.scan_iter(match=prefix):
+        keys.append(key)
+    key_combos = list(combinations(keys, 2))
     pipe = r.pipeline()
     for hll1, hll2 in key_combos:
         # for each key in a tuple (a field) we compute
@@ -138,5 +144,51 @@ def process_all_pairs():
         print(asdict(score))
 
 
+def _serialize_signature(source, field, context, sig):
+    with open(source, 'w') as fp:
+        out = {
+            'field': field,
+            'context': context,
+            'hll': base64.b64encode(sig).decode()
+        }
+        json.dump(out, fp)
+
+
+def generate_signatures():
+    """Generate a sample signature
+    for the known containment we are looking for.
+
+    In practce we would have already generated the
+    context data through pre-processing steps
+    """
+    r = redis.Redis()
+    thief_key = f'{HLL_PREFIX}:the_thief.csv.gz:number'
+    bank_key = f'{HLL_PREFIX}:the_bank.csv.gz:number'
+
+    _serialize_signature('data/thief_sig.json', 'number', 'credit_card', r.get(thief_key))
+    _serialize_signature('data/bank_sig.json', 'number', 'credit_card', r.get(bank_key))
+
+
+def process_from_signatures():
+    """Reload the signatures back into Redis
+    and compute containments. Here we're ignoring
+    validating that contexts are identical
+    """
+    r = redis.Redis()
+    with open('data/bank_sig.json', 'r') as bankfp, open('data/thief_sig.json', 'r') as thieffp:
+        bank_dict = json.loads(bankfp.read())
+        thief_dict = json.loads(thieffp.read())
+
+        r.set(f'restore:bank:{bank_dict["field"]}', base64.b64decode(bank_dict['hll']))
+        r.set(f'restore:thief:{thief_dict["field"]}', base64.b64decode(thief_dict['hll']))
+
+    process_all_pairs(prefix='restore:*')
+
+
 if __name__ == '__main__':
+    print('**** Processing HLLs in Redis ****')
     process_all_pairs()
+    print('\n\n**** Exporting 2 HLLs to disk ****')
+    generate_signatures()
+    print('\n\n**** Restoring signatures from disk to Redis ****')
+    process_from_signatures()

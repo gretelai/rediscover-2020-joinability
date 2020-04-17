@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from csv import DictReader
 import sys
-from base64 import b64encode
 
 from smart_open import open
 
@@ -24,7 +23,6 @@ def create_redis_hll_command(source, field, value):
     bitfield
     """
     redis_key = f'{HLL_PREFIX}:{source}:{field}'
-    # return create_resp(*['PFADD', redis_key, b64encode(value.lower().encode()).decode()])
     return create_resp(*['PFADD', redis_key, value.lower()])
 
 

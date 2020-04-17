@@ -36,7 +36,8 @@ class Generator:
 
     def _generate_bank_row(self):
         provider = self.faker.credit_card_provider(
-            card_type=self.bank_card_type)
+            card_type=self.bank_card_type
+        )
         tmp = (
             provider,
             self.faker.name(),
@@ -48,7 +49,8 @@ class Generator:
 
     def _generate_thief_row(self):
         provider = self.faker.credit_card_provider(
-            card_type=self.thief_card_type)
+            card_type=self.thief_card_type
+        )
         tmp = (
             provider,
             self.faker.credit_card_number(card_type=CARD_MAP[provider]),
