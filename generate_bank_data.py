@@ -3,6 +3,7 @@ import csv
 import random
 import gzip
 import sys
+from pathlib import Path
 
 import faker
 import faker.providers.credit_card as cc
@@ -61,7 +62,7 @@ class Generator:
     def start(self):
         # we will randomly extract the amount of overlapping records
         # between bank and thief as we generate the bank records
-        # this way we don't have to reload the bank records to
+        # this way we don't have to reload the bank records
         thief_idxs = sorted(random.sample(range(0, self.bank_count), self.intersection))
 
         logger.info(f'Generating {self.bank_count} bank records...')
@@ -100,6 +101,8 @@ class Generator:
 
 
 if __name__ == '__main__':
+    if not Path('data').exists():
+        Path('data').mkdir()
     bank_count, thief_count, intersection = sys.argv[1:]  # pylint: disable=unbalanced-tuple-unpacking
     generator = Generator(bank_count=int(bank_count), thief_count=int(thief_count), intersection=int(intersection))
     generator.start()

@@ -4,6 +4,7 @@ from csv import DictReader
 import sys
 
 from smart_open import open
+import redis
 
 HLL_PREFIX = 'hll'
 
@@ -69,7 +70,16 @@ class CSV(Dataset):
                     raise
 
 
+def clear_hll_keys():
+    r = redis.Redis()
+    for key in r.scan_iter(match='hll:*'):
+        r.delete(key)
+    for key in r.scan_iter(match='restore:*'):
+        r.delete(key)
+
+
 if __name__ == '__main__':
+    clear_hll_keys()
     ds = CSV(sys.argv[1], skip_values=['NULL'])
     for resp in ds.field_value_hll_commands():
         if resp:

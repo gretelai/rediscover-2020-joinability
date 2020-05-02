@@ -183,7 +183,7 @@ def process_from_signatures():
         r.set(f'restore:thief:{thief_dict["field"]}', base64.b64decode(thief_dict['hll']))
 
     process_all_pairs(prefix='restore:*')
-
+    
 
 if __name__ == '__main__':
     print('**** Processing HLLs in Redis ****')

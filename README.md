@@ -1,6 +1,8 @@
 # Getting Started
 
-Be sure to have Docker installed and Python 3.7+ installed, that's what this was tested with, YMMV on older versions.
+Be sure to have Docker installed and Python 3.7+ installed, that's what this was tested with, YMMV on older versions of Python.
+
+You can run `redis-server` separate of Docker, too, as long as port 6379 is exposed to the localhost!
 
 You'll also need `redis-cli` installed.
 
@@ -16,8 +18,13 @@ Run a localized Redis instance:
 docker run -d --name redisconf -p 6379:6379 redis:5
 ```
 
-Generate some records, for the preso I generated 2M, 50k, and 25k bank records, thief records, and the intersection, respectively. Feel free to adjust. If you use
-the same numbers, sit back and relax while they generate.
+Generate some records, for the preso I generated 2M, 50k, and 25k bank records, thief records, and the intersection, respectively. Feel free to adjust. This dataset
+takes a while to generate. You can use a smaller set of numbers like this to generate
+some data locally fairly quickly:
+
+```
+python generate_bank_data.py 50000 10000 5000
+```
 
 Alternatively, this sample data is available here:
 
@@ -26,15 +33,10 @@ Alternatively, this sample data is available here:
 
 You can download each file into a `data` directory in the root of the repo.
 
-If you choose to generate your own...
-
-```
-python generate_bank_data.py 2000000 50000 25000
-```
-
 Now load this data into Redis using the mass ingest pipeline.
 
-**NOTE:** We're not flushing Redis at all, so if you're trying this multiple times, flushing the db is up to you if you want.
+**NOTE:** When loading the data, we'll automatically delete the previous
+HLL keys that were used.
 
 ```
 python loader.py data | redis-cli --pipe
