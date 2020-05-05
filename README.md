@@ -4,7 +4,7 @@ Be sure to have Docker installed and Python 3.7+ installed, that's what this was
 
 You can run `redis-server` separate of Docker, too, as long as port 6379 is exposed to the localhost!
 
-You'll also need `redis-cli` installed.
+You'll also need `redis-cli` installed. I tested this on OS X so a `brew install redis` will install the client tools.
 
 ```
 virtualenv venv
