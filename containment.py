@@ -142,6 +142,7 @@ def process_all_pairs(prefix='hll:*'):
 
     for score in scores:
         print(asdict(score))
+        print()
 
 
 def _serialize_signature(source, field, context, sig):
@@ -183,12 +184,12 @@ def process_from_signatures():
         r.set(f'restore:thief:{thief_dict["field"]}', base64.b64decode(thief_dict['hll']))
 
     process_all_pairs(prefix='restore:*')
-    
+
 
 if __name__ == '__main__':
-    print('**** Processing HLLs in Redis ****')
+    print('**** Processing HLLs in Redis ****\n')
     process_all_pairs()
-    print('\n\n**** Exporting 2 HLLs to disk ****')
+    print('\n\n**** Exporting 2 HLLs to disk ****\n')
     generate_signatures()
-    print('\n\n**** Restoring signatures from disk to Redis ****')
+    print('\n\n**** Restoring signatures from disk to Redis ****\n')
     process_from_signatures()
