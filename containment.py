@@ -72,7 +72,7 @@ def get_single_containment(field1, field1_card, field2,
 
 def compute_containment(keynames, scores):
     """Since a containment between two fields
-    is asymmmetrical, we actually return
+    is asymmetrical, we actually return
     2 ``ContainmentResult`` instances for each
     pair of fields we are analyzing
     """
